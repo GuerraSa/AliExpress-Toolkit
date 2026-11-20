@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AliExpress Toolkit
 // @namespace    https://github.com/GuerraSa/AliExpress-Toolkit
-// @version      1.0.0
+// @version      1.1.0
 // @description  Cleaner AliExpress: real products only, sorted by sold count, clean URLs, bundle-page redirect, text-first descriptions, side-by-side reviews, and a full reviews tab with infinite scroll.
 // @author       GuerraSa
 // @match        *://*.aliexpress.com/*
@@ -81,9 +81,14 @@
   const productId = (location.pathname.match(/^\/item\/(\d+)\.html/) || [])[1];
   if (productId && location.hash === '#aetk-reviews') return reviewsPage(productId);
 
+  // The "Subscribe to notifications" prompt skips itself for 3 days after it was "shown".
+  try { localStorage.setItem('webpush-auth-popup', JSON.stringify({ date: Date.now(), status: 'shown' })); } catch (e) { /* storage blocked: prompt may show */ }
+
   GM_addStyle(`
     /* hide the floating feedback/help button */
     [class*="survey--wrap"] { display: none !important; }
+    /* offer, promotion and coupon pop-ups: AliExpress's pop-up system wraps every one in this layer */
+    body > div[style*="z-index: 1000000"], [class*="poplayer-modal"] { display: none !important; }
     /* search results the script removed */
     [data-aetk-hide] { display: none !important; }
 

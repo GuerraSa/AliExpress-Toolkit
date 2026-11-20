@@ -27,6 +27,7 @@ Tampermonkey checks this link for updates automatically, so new releases install
 - **Help/feedback button hidden.**
 
 ### Everywhere
+- **No pop-ups.** Offer, promotion and coupon pop-ups are hidden, and so is the "Subscribe to notifications" prompt.
 - **Clean URLs.** Tracking parameters are removed from the address bar once the page has loaded, so copied links are short. Product links keep only `sku_id` (the selected variant). Search links keep your filters and page number.
 
 ## Notes and limits
