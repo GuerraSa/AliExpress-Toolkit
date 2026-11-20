@@ -43,4 +43,10 @@ The whole script is one file: [`aliexpress-toolkit.user.js`](aliexpress-toolkit.
 node test.js
 ```
 
-To release a new version, bump `@version` in the script header and attach the file to a new GitHub release.
+To release a new version, bump `@version` in the script header, commit, then push a matching tag:
+
+```sh
+git tag v1.0.1 && git push origin v1.0.1
+```
+
+GitHub Actions checks the tag matches `@version`, runs the self-test, and publishes the release with the script attached.
