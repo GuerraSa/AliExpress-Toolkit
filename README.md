@@ -44,6 +44,14 @@ The whole script is one file: [`aliexpress-toolkit.user.js`](aliexpress-toolkit.
 node test.js
 ```
 
+To check the script still works on real AliExpress pages (search, product page, reviews tab, bundle redirect, pop-ups), run it in a hidden browser. This needs Node 22+ and Chrome, Brave or Edge:
+
+```sh
+node live-check.mjs
+```
+
+It visits about five pages per run. Running it many times in a row makes AliExpress ask for a robot check; the check then reports those pages as skipped. Wait an hour and try again.
+
 To release a new version, bump `@version` in the script header, commit, then push a matching tag:
 
 ```sh

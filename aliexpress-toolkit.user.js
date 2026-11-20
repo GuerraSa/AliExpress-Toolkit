@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AliExpress Toolkit
 // @namespace    https://github.com/GuerraSa/AliExpress-Toolkit
-// @version      1.1.0
+// @version      1.1.1
 // @description  Cleaner AliExpress: real products only, sorted by sold count, clean URLs, bundle-page redirect, text-first descriptions, side-by-side reviews, and a full reviews tab with infinite scroll.
 // @author       GuerraSa
 // @match        *://*.aliexpress.com/*
@@ -91,6 +91,8 @@
     body > div[style*="z-index: 1000000"], [class*="poplayer-modal"] { display: none !important; }
     /* search results the script removed */
     [data-aetk-hide] { display: none !important; }
+    /* not-yet-loaded results: flat and first, so AliExpress sees them on screen and loads them all now */
+    [data-aetk-wait] { order: -1 !important; height: 0 !important; overflow: hidden; }
 
     /* product page: description + specs on the left, reviews on the right */
     .pdp-body-top-left { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: row dense; column-gap: 24px; align-items: start; }
@@ -144,7 +146,8 @@
     const offTopic = GM_getValue('offTopic', false);
     const cards = [...list.children].map((el) => {
       const link = el.querySelector('a[href]');
-      if (!link) return { el, sold: -1 }; // placeholder that hasn't loaded yet
+      if (!link) { el.setAttribute('data-aetk-wait', ''); return null; } // placeholder that hasn't loaded yet
+      el.removeAttribute('data-aetk-wait');
       const href = link.getAttribute('href');
       const target = bundleTarget(href);
       if (target) link.setAttribute('href', target);
@@ -156,7 +159,7 @@
       return { el, sold: parseSold(el.textContent) };
     });
     // Reorder visually with CSS "order" — the page itself is never reloaded or rebuilt.
-    cards.sort((a, b) => b.sold - a.sold).forEach((c, i) => { c.el.style.order = c.sold < 0 ? 9999 : i; });
+    cards.filter(Boolean).sort((a, b) => b.sold - a.sold).forEach((c, i) => { c.el.style.order = i; });
   }
 
   function tidyProductPage() {
@@ -164,8 +167,8 @@
     const main = document.querySelector('[class*="magnifier--image"]');
     const skuImg = document.querySelector('[class*="sku-item--selected"] img');
     if (main && skuImg && !userPickedImage) {
-      const full = skuImg.src.replace(/(\.(jpe?g|png|webp))_.*$/i, '$1');
-      if (main.src !== full) main.src = full;
+      const big = skuImg.src.replace(/_\d+x\d+/, '_960x960'); // same size AliExpress uses for the main picture
+      if (main.src !== big) main.src = big;
     }
 
     // Button to open every review in its own tab.
@@ -196,7 +199,12 @@
         box.className = 'aetk-desc-images';
         (root.querySelector('.product-description') || root).append(box);
       }
-      imgs.forEach((img) => { img.dataset.aetkMoved = '1'; img.style.display = 'block'; box.append(img); });
+      imgs.forEach((img) => {
+        img.dataset.aetkMoved = '1';
+        img.style.display = 'block';
+        const link = img.closest('a'); // keep picture links clickable, unless the link wraps the whole description
+        box.append(link && !link.contains(box) ? link : img);
+      });
     }
   }
 
